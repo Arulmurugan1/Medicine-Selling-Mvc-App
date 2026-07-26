@@ -35,21 +35,21 @@
                         <label class="form-label fw-semibold">Full Name</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light"><i class="fas fa-user text-muted"></i></span>
-                            <input type="text" name="name" class="form-control" placeholder="John Doe" required>
+                            <input type="text" name="name" class="form-control" placeholder="John Doe" autocomplete="off" required>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Email Address</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light"><i class="fas fa-envelope text-muted"></i></span>
-                            <input type="email" name="email" class="form-control" placeholder="you@example.com" required>
+                            <input type="email" name="email" class="form-control" placeholder="you@example.com" autocomplete="off" required>
                         </div>
                     </div>
                     <div class="mb-4">
                         <label class="form-label fw-semibold">Password <small class="text-muted">(min. 6 chars)</small></label>
                         <div class="input-group">
                             <span class="input-group-text bg-light"><i class="fas fa-lock text-muted"></i></span>
-                            <input type="password" name="password" class="form-control" placeholder="••••••••" required minlength="6">
+                            <input type="password" name="password" class="form-control" placeholder="Enter the Password" autocomplete="new-password" required minlength="6">
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">

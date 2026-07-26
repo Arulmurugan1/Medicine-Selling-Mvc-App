@@ -49,6 +49,14 @@ public class ApiProxyController {
         return result != null ? ResponseEntity.ok(result) : ResponseEntity.noContent().build();
     }
 
+    @DeleteMapping("/**")
+    public ResponseEntity<Object> proxyDelete(HttpServletRequest request, HttpSession session) {
+        String path = extractPath(request, "/api-proxy");
+        String token = sessionUtil.getToken(session);
+        Object result = apiClient.delete("/api/" + path, token, Object.class);
+        return result != null ? ResponseEntity.ok(result) : ResponseEntity.noContent().build();
+    }
+
     private String extractPath(HttpServletRequest request, String prefix) {
         String uri = request.getRequestURI();
         String path = uri.substring(prefix.length() + 1); // remove /api-proxy/

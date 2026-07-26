@@ -1,3 +1,4 @@
+<%@ page contentType="text/html; charset=UTF-16" pageEncoding="UTF-16" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <c:set var="loggedIn" value="${true}" />
 <%@include file="layout/header.jsp"%>

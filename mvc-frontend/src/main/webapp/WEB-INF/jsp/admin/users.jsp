@@ -34,18 +34,50 @@
                         </c:choose>
                     </td>
                     <td>
+                        <div class="d-flex gap-2">
                         <c:if test="${user.isActive && user.role != 'ADMIN'}">
+                            <button class="btn btn-sm btn-outline-success promote-btn"
+                                    data-bs-toggle="modal" data-bs-target="#promoteModal"
+                                    data-userid="${user.id}" data-username="${user.name}">
+                                <i class="fas fa-user-shield me-1"></i>Make Admin
+                            </button>
                             <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
                                     data-bs-target="#inactivateModal" data-userid="${user.id}" data-username="${user.name}">
                                 <i class="fas fa-user-slash me-1"></i>Inactivate
                             </button>
                         </c:if>
+                        </div>
                     </td>
                 </tr>
                 </c:forEach>
                 </tbody>
             </table>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="promoteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold text-success"><i class="fas fa-user-shield me-2"></i>Promote to Admin</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="promoteForm" method="post">
+                <div class="modal-body">
+                    <div class="alert alert-warning rounded-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        You are about to grant full admin privileges to <strong id="promoteUserName"></strong>.
+                        This action cannot be undone from the UI.
+                    </div>
+                    <p class="text-muted small">The user will have access to all admin features including user management, order management, and inventory control.</p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success"><i class="fas fa-user-shield me-1"></i>Confirm Promote</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -70,6 +102,11 @@
     </div>
 </div>
 <script>
+document.getElementById('promoteModal').addEventListener('show.bs.modal', function(e) {
+    const btn = e.relatedTarget;
+    document.getElementById('promoteForm').action = '/admin/users/' + btn.dataset.userid + '/promote';
+    document.getElementById('promoteUserName').textContent = btn.dataset.username;
+});
 document.getElementById('inactivateModal').addEventListener('show.bs.modal', function(e) {
     const btn = e.relatedTarget;
     document.getElementById('inactivateForm').action = '/admin/users/' + btn.dataset.userid + '/inactivate';

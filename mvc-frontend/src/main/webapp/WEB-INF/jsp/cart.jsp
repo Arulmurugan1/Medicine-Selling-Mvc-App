@@ -16,7 +16,7 @@
     <h4 class="fw-bold mb-4"><i class="fas fa-shopping-cart me-2 text-primary"></i>My Cart</h4>
 
     <div id="cartEmpty" class="text-center py-5 d-none">
-        <div style="font-size: 5rem;">🛒</div>
+        <div><i class="fas fa-shopping-cart text-muted" style="font-size:5rem;"></i></div>
         <h5 class="text-muted mt-3">Your cart is empty</h5>
         <a href="/medicines" class="btn btn-primary mt-3">Browse Medicines</a>
     </div>

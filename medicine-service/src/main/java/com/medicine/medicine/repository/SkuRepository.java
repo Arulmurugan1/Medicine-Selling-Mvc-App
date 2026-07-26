@@ -9,6 +9,7 @@ import java.util.List;
 @Repository
 public interface SkuRepository extends JpaRepository<SkuMaster, Long> {
     List<SkuMaster> findByMedicineIdAndIsActiveTrueAndQuantityAvailableGreaterThan(Long medicineId, int qty);
+    List<SkuMaster> findByMedicineIdAndIsActiveTrue(Long medicineId);
     List<SkuMaster> findByMedicineId(Long medicineId);
     boolean existsBySkuCode(String skuCode);
 }

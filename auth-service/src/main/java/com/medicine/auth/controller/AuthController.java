@@ -61,4 +61,16 @@ public class AuthController {
         authService.inactivateUser(id, performedBy, remarks);
         return ResponseEntity.ok(Map.of("message", "User inactivated successfully"));
     }
+
+    @PutMapping("/users/{id}/promote")
+    public ResponseEntity<Map<String, String>> promoteToAdmin(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-User-Role", defaultValue = "") String role,
+            @RequestHeader("X-User-Email") String performedBy) {
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(403).build();
+        }
+        authService.promoteToAdmin(id, performedBy);
+        return ResponseEntity.ok(Map.of("message", "User promoted to ADMIN successfully"));
+    }
 }

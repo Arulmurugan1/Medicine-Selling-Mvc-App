@@ -1,3 +1,4 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html lang="en" translate="no">
@@ -39,14 +40,12 @@
         </button>
         <div class="collapse navbar-collapse" id="navMenu">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <c:if test="${loggedIn}">
-                    <li class="nav-item"><a class="nav-link" href="/medicines"><i class="fas fa-pills me-1"></i>Medicines</a></li>
-                    <c:if test="${role == 'GUEST'}">
-                        <li class="nav-item"><a class="nav-link" href="/orders/my"><i class="fas fa-box me-1"></i>My Orders</a></li>
-                    </c:if>
-                    <c:if test="${role == 'ADMIN'}">
-                        <li class="nav-item"><a class="nav-link" href="/admin/dashboard"><i class="fas fa-tachometer-alt me-1"></i>Dashboard</a></li>
-                    </c:if>
+                <c:if test="${loggedIn && (role == 'USER' || role == 'ADMIN')}">
+                    <li class="nav-item"><a class="nav-link" href="/medicines"><i class="fas fa-pills me-1"></i>Order Now</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/orders/my"><i class="fas fa-box me-1"></i>My Orders</a></li>
+                </c:if>
+                <c:if test="${loggedIn && role == 'ADMIN'}">
+                    <li class="nav-item"><a class="nav-link" href="/admin/dashboard"><i class="fas fa-tachometer-alt me-1"></i>Admin Panel</a></li>
                 </c:if>
             </ul>
             <ul class="navbar-nav ms-auto">
@@ -55,7 +54,9 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                                 <i class="fas fa-user-circle me-1"></i>${userName}
-                                <span class="badge bg-primary ms-1">${role}</span>
+                                <c:if test="${role != 'GUEST'}">
+                                    <span class="badge bg-primary ms-1">${role}</span>
+                                </c:if>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>

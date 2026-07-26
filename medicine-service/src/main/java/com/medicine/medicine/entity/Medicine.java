@@ -1,5 +1,6 @@
 package com.medicine.medicine.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,6 +37,7 @@ public class Medicine {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "medicine", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<SkuMaster> skus;
 

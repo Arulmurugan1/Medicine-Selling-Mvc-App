@@ -21,11 +21,12 @@ public class ApiClient {
 
     public <T> T get(String path, String token, Class<T> responseType) {
         try {
-            HttpHeaders headers = buildHeaders(token);
-            HttpEntity<Void> entity = new HttpEntity<>(headers);
-            ResponseEntity<T> response = restTemplate.exchange(
-                    gatewayUrl + path, HttpMethod.GET, entity, responseType);
+            HttpHeaders headers         = buildHeaders(token);
+            HttpEntity<Void> entity     = new HttpEntity<>(headers);
+            ResponseEntity<T> response  = restTemplate.exchange( gatewayUrl + path, HttpMethod.GET, entity, responseType);
+            
             return response.getBody();
+            
         } catch (RestClientException e) {
             return null;
         }
@@ -51,6 +52,18 @@ public class ApiClient {
                     gatewayUrl + path, HttpMethod.PUT, entity, responseType);
             return response.getBody();
         } catch (HttpClientErrorException e) {
+            return null;
+        }
+    }
+
+    public <T> T delete(String path, String token, Class<T> responseType) {
+        try {
+            HttpHeaders headers = buildHeaders(token);
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+            ResponseEntity<T> response = restTemplate.exchange(
+                    gatewayUrl + path, HttpMethod.DELETE, entity, responseType);
+            return response.getBody();
+        } catch (RestClientException e) {
             return null;
         }
     }

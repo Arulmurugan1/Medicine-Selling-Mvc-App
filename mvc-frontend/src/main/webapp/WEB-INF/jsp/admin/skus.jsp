@@ -20,6 +20,12 @@
                     </button>
                 </c:forEach>
                 </div>
+                <!-- Pagination -->
+                <div class="d-flex justify-content-between align-items-center mt-3" id="medPagination">
+                    <button class="btn btn-sm btn-outline-secondary" id="pagePrev" onclick="changePage(-1)">&laquo; Prev</button>
+                    <small class="text-muted" id="pageInfo"></small>
+                    <button class="btn btn-sm btn-outline-secondary" id="pageNext" onclick="changePage(1)">Next &raquo;</button>
+                </div>
             </div>
         </div>
 
@@ -95,12 +101,51 @@
 
 <script>
 let currentMedId = null;
+const PAGE_SIZE = 8;
+let currentPage = 0;
+let filteredItems = [];
+
+// Decode HTML entities from server-rendered text (e.g. &amp; &lt; accented chars)
+function decode(str) {
+    const txt = document.createElement('textarea');
+    txt.innerHTML = str || '';
+    return txt.value;
+}
+
+function getAllItems() {
+    return Array.from(document.querySelectorAll('.med-item'));
+}
+
+function applyFilter(q) {
+    const all = getAllItems();
+    filteredItems = q ? all.filter(btn => btn.textContent.toLowerCase().includes(q)) : all;
+    currentPage = 0;
+    renderPage();
+}
+
+function renderPage() {
+    const total = filteredItems.length;
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    const start = currentPage * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+
+    getAllItems().forEach(btn => btn.style.display = 'none');
+    filteredItems.slice(start, end).forEach(btn => btn.style.display = '');
+
+    document.getElementById('pageInfo').textContent = 'Page ' + (currentPage + 1) + ' / ' + totalPages + ' (' + total + ' total)';
+    document.getElementById('pagePrev').disabled = currentPage === 0;
+    document.getElementById('pageNext').disabled = currentPage >= totalPages - 1;
+    document.getElementById('medPagination').style.display = total === 0 ? 'none' : '';
+}
+
+function changePage(delta) {
+    const totalPages = Math.ceil(filteredItems.length / PAGE_SIZE);
+    currentPage = Math.max(0, Math.min(currentPage + delta, totalPages - 1));
+    renderPage();
+}
 
 document.getElementById('medSearch').addEventListener('input', function() {
-    const q = this.value.toLowerCase();
-    document.querySelectorAll('.med-item').forEach(btn => {
-        btn.style.display = btn.textContent.toLowerCase().includes(q) ? '' : 'none';
-    });
+    applyFilter(this.value.toLowerCase());
 });
 
 document.querySelectorAll('.med-item').forEach(btn => {
@@ -108,37 +153,43 @@ document.querySelectorAll('.med-item').forEach(btn => {
         document.querySelectorAll('.med-item').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
         currentMedId = this.dataset.medid;
-        document.getElementById('skuPanelTitle').textContent = this.dataset.medname + ' — SKUs';
+        document.getElementById('skuPanelTitle').textContent = decode(this.dataset.medname) + ' — SKUs';
         document.getElementById('addSkuBtn').classList.remove('d-none');
         document.getElementById('addSkuMedId').value = currentMedId;
         loadSkus(currentMedId);
     });
 });
 
+// Init pagination on load
+filteredItems = getAllItems();
+renderPage();
+
 function loadSkus(medId) {
     fetch('/api-proxy/medicines/' + medId + '/skus/all')
-        .then(r => r.json()).then(skus => {
+        .then(function(r) { return r.status === 204 ? [] : r.json(); })
+        .then(function(skus) {
             const tbody = document.getElementById('skuTableBody');
             if (!skus || skus.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No SKUs found for this medicine</td></tr>';
                 return;
             }
-            tbody.innerHTML = skus.map(s => `
-                <tr>
-                    <td><code>${s.skuCode}</code></td>
-                    <td>${s.unitLabel}</td>
-                    <td class="fw-semibold">₹${s.unitPrice}</td>
-                    <td>${s.quantityAvailable}</td>
-                    <td><span class="badge ${s.isActive ? 'bg-success' : 'bg-danger'}">${s.isActive ? 'Active' : 'Inactive'}</span></td>
-                    <td>
-                        <div class="d-flex gap-1">
-                            <button class="btn btn-sm btn-outline-primary" onclick="openEdit(${s.id},'${s.unitLabel}',${s.unitPrice},${s.quantityAvailable})">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            ${s.isActive ? `<button class="btn btn-sm btn-outline-danger" onclick="inactivateSku(${s.id})"><i class="fas fa-ban"></i></button>` : ''}
-                        </div>
-                    </td>
-                </tr>`).join('');
+            tbody.innerHTML = skus.map(function(s) {
+                const label = decode(s.unitLabel);
+                const code  = decode(s.skuCode);
+                const safeLabel = label.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                return '<tr>' +
+                    '<td><code>' + code + '</code></td>' +
+                    '<td>' + label + '</td>' +
+                    '<td class="fw-semibold">&#8377;' + Number(s.unitPrice).toFixed(2) + '</td>' +
+                    '<td>' + s.quantityAvailable + '</td>' +
+                    '<td><span class="badge ' + (s.isActive ? 'bg-success' : 'bg-danger') + '">' + (s.isActive ? 'Active' : 'Inactive') + '</span></td>' +
+                    '<td><div class="d-flex gap-1">' +
+                        '<button class="btn btn-sm btn-outline-primary" onclick="openEdit(' + s.id + ',\'' + safeLabel + '\',' + s.unitPrice + ',' + s.quantityAvailable + ')">' +
+                            '<i class="fas fa-edit"></i></button>' +
+                        (s.isActive ? '<button class="btn btn-sm btn-outline-danger" onclick="inactivateSku(' + s.id + ')"><i class="fas fa-ban"></i></button>' : '') +
+                    '</div></td>' +
+                '</tr>';
+            }).join('');
         });
 }
 

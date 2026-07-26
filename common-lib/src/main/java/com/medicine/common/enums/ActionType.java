@@ -5,6 +5,7 @@ public enum ActionType {
     ORDER_STATUS_UPDATE,
     CANCEL_ORDER,
     INACTIVATE_USER,
+    PROMOTE_USER,
     INACTIVATE_SKU,
     CREATE_SKU,
     UPDATE_SKU,

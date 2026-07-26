@@ -5,6 +5,8 @@ import com.medicine.frontend.util.ApiClient;
 import com.medicine.frontend.util.SessionUtil;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,7 @@ import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
+@Slf4j
 public class FrontendController {
 
     private final ApiClient apiClient;
@@ -56,6 +59,7 @@ public class FrontendController {
                         (String) response.get("name"),
                         (String) response.get("role"),
                         ((Number) response.get("userId")).longValue());
+                
                 if ("ADMIN".equals(response.get("role"))) return "redirect:/admin/dashboard";
                 return "redirect:/medicines";
             }
@@ -99,7 +103,50 @@ public class FrontendController {
     @GetMapping("/medicines")
     public String medicines(HttpSession session, Model model) {
         if (!sessionUtil.isLoggedIn(session)) return "redirect:/";
+        if (sessionUtil.isAdmin(session)) return "redirect:/admin/dashboard";
         List medicines = apiClient.get("/api/medicines", sessionUtil.getToken(session), List.class);
+        model.addAttribute("medicines", medicines);
+        return "medicines";
+    }
+
+    // =================== ADMIN - ORDER NOW ===================
+
+    @GetMapping("/admin/order")
+    public String adminOrder(HttpSession session, Model model) {
+        if (!sessionUtil.isAdmin(session)) return "redirect:/";
+        String token = sessionUtil.getToken(session);
+
+        // Fetch all available medicines
+        List<Map> medicines = apiClient.get("/api/medicines", token, List.class);
+        if (medicines == null) medicines = List.of();
+
+        // Fetch recent orders to determine which medicines were ordered most
+        List<Map> orders = apiClient.get("/api/orders", token, List.class);
+        Map<String, Long> orderFrequency = new java.util.LinkedHashMap<>();
+        if (orders != null) {
+            for (Map order : orders) {
+                Object items = order.get("items");
+                if (items instanceof List<?> itemList) {
+                    for (Object item : itemList) {
+                        if (item instanceof Map<?,?> itemMap) {
+                            String medName = (String) itemMap.get("medicineName");
+                            if (medName != null) {
+                                orderFrequency.merge(medName.toLowerCase(), 1L, Long::sum);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Sort: previously ordered medicines first (by frequency desc), then the rest
+        final Map<String, Long> freq = orderFrequency;
+        medicines.sort((a, b) -> {
+            long fa = freq.getOrDefault(String.valueOf(a.get("name")).toLowerCase(), 0L);
+            long fb = freq.getOrDefault(String.valueOf(b.get("name")).toLowerCase(), 0L);
+            return Long.compare(fb, fa);
+        });
+
         model.addAttribute("medicines", medicines);
         return "medicines";
     }
@@ -115,11 +162,17 @@ public class FrontendController {
     @GetMapping("/checkout")
     public String checkout(HttpSession session, Model model) {
         if (!sessionUtil.isLoggedIn(session)) return "redirect:/";
+
         String token = sessionUtil.getToken(session);
+
+        log.info("Fetching addresses and customers for checkout... {}", token);
+
         List addresses = apiClient.get("/api/addresses", token, List.class);
         List customers = apiClient.get("/api/customers", token, List.class);
+
         model.addAttribute("addresses", addresses);
         model.addAttribute("customers", customers);
+
         return "checkout";
     }
 
@@ -130,7 +183,8 @@ public class FrontendController {
         if (!sessionUtil.isLoggedIn(session)) return "redirect:/";
         try {
             String token = sessionUtil.getToken(session);
-            List items = objectMapper.readValue(itemsJson, List.class);
+            List<Map<String, Object>> items = objectMapper.readValue(itemsJson,
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, Map.class));
             Map<String, Object> body = new HashMap<>();
             body.put("customerId", customerId);
             body.put("shippingAddressId", addressId);
@@ -242,6 +296,14 @@ public class FrontendController {
         apiClient.put("/api/auth/users/" + id + "/inactivate", sessionUtil.getToken(session),
                 Map.of("remarks", remarks != null ? remarks : ""), Map.class);
         ra.addFlashAttribute("success", "User inactivated.");
+        return "redirect:/admin/users";
+    }
+
+    @PostMapping("/admin/users/{id}/promote")
+    public String promoteUser(@PathVariable Long id, HttpSession session, RedirectAttributes ra) {
+        if (!sessionUtil.isAdmin(session)) return "redirect:/";
+        apiClient.put("/api/auth/users/" + id + "/promote", sessionUtil.getToken(session), null, Map.class);
+        ra.addFlashAttribute("success", "User has been promoted to ADMIN.");
         return "redirect:/admin/users";
     }
 

@@ -38,14 +38,14 @@
                         <label class="form-label fw-semibold">Email Address</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light"><i class="fas fa-envelope text-muted"></i></span>
-                            <input type="email" name="email" class="form-control" placeholder="you@example.com" required>
+                            <input type="email" name="email" class="form-control" placeholder="you@example.com" autocomplete="off" required>
                         </div>
                     </div>
                     <div class="mb-4">
                         <label class="form-label fw-semibold">Password</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light"><i class="fas fa-lock text-muted"></i></span>
-                            <input type="password" name="password" class="form-control" placeholder="Enter the Password" required>
+                            <input type="password" name="password" class="form-control" placeholder="Enter the Password" autocomplete="new-password" required>
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">

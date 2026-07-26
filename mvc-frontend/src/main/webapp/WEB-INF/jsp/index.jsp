@@ -79,7 +79,7 @@
                 </div>
             </div>
             <div class="col-lg-6 text-center mt-5 mt-lg-0">
-                <div style="font-size: 12rem; opacity: 0.25;">💊</div>
+                <div style="font-size: 12rem; opacity: 0.25;"><i class="fas fa-pills text-primary"></i></div>
             </div>
         </div>
     </div>
@@ -95,28 +95,28 @@
         <div class="row g-4">
             <div class="col-md-3">
                 <div class="card border-0 shadow-sm h-100 card-hover p-4 text-center">
-                    <div class="feature-icon bg-blue-100 mx-auto mb-3">🏥</div>
+                    <div class="feature-icon bg-blue-100 mx-auto mb-3"><i class="fas fa-hospital text-primary" style="font-size:2rem;"></i></div>
                     <h5 class="fw-bold">Genuine Medicines</h5>
                     <p class="text-muted small">100% authentic, certified and quality-checked medicines</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card border-0 shadow-sm h-100 card-hover p-4 text-center">
-                    <div class="feature-icon bg-green-100 mx-auto mb-3">🚚</div>
+                    <div class="feature-icon bg-green-100 mx-auto mb-3"><i class="fas fa-truck text-success" style="font-size:2rem;"></i></div>
                     <h5 class="fw-bold">Fast Delivery</h5>
                     <p class="text-muted small">Doorstep delivery with real-time order tracking</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card border-0 shadow-sm h-100 card-hover p-4 text-center">
-                    <div class="feature-icon bg-purple-100 mx-auto mb-3">💰</div>
+                    <div class="feature-icon bg-purple-100 mx-auto mb-3"><i class="fas fa-tag text-purple" style="font-size:2rem;color:#7c3aed;"></i></div>
                     <h5 class="fw-bold">Best Prices</h5>
                     <p class="text-muted small">Competitive pricing with no hidden charges</p>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card border-0 shadow-sm h-100 card-hover p-4 text-center">
-                    <div class="feature-icon bg-yellow-100 mx-auto mb-3">🔒</div>
+                    <div class="feature-icon bg-yellow-100 mx-auto mb-3"><i class="fas fa-lock text-warning" style="font-size:2rem;"></i></div>
                     <h5 class="fw-bold">Secure & Private</h5>
                     <p class="text-muted small">Your health data is always private and secure</p>
                 </div>

@@ -19,12 +19,9 @@ public class MedicineService {
     private final MedicineRepository medicineRepository;
     private final SkuRepository skuRepository;
 
-    @Cacheable(value = "medicines")
     public List<Medicine> findAllWithAvailableSkus() {
         return medicineRepository.findAll().stream()
-                .filter(m -> skuRepository
-                        .findByMedicineIdAndIsActiveTrueAndQuantityAvailableGreaterThan(m.getId(), 0)
-                        .size() > 0)
+                .filter(m -> !skuRepository.findByMedicineIdAndIsActiveTrue(m.getId()).isEmpty())
                 .toList();
     }
 

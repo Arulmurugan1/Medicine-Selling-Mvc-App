@@ -1,5 +1,6 @@
 package com.medicine.medicine.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,6 +25,7 @@ public class SkuMaster {
     @Column(name = "sku_code", nullable = false, unique = true, length = 50)
     private String skuCode;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "medicine_id", nullable = false)
     private Medicine medicine;

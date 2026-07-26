@@ -6,9 +6,14 @@
 <div class="container-fluid p-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="fw-bold mb-0"><i class="fas fa-pills me-2 text-primary"></i>Medicine Management</h4>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMedModal">
-            <i class="fas fa-plus me-1"></i>Add Medicine
-        </button>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-warning btn-sm" onclick="evictCache()" title="Clear stale cache so latest DB data is shown">
+                <i class="fas fa-sync-alt me-1"></i>Refresh Cache
+            </button>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMedModal">
+                <i class="fas fa-plus me-1"></i>New Medicine
+            </button>
+        </div>
     </div>
     <c:if test="${not empty success}">
         <div class="alert alert-success rounded-3"><i class="fas fa-check-circle me-2"></i>${success}</div>
@@ -58,6 +63,16 @@
     </div>
 </div>
 <script>
+function evictCache() {
+    fetch('/api-proxy/medicines/cache', { method: 'DELETE' })
+        .then(r => r.json())
+        .then(d => {
+            alert(d.message || 'Cache cleared');
+            location.reload();
+        })
+        .catch(() => alert('Failed to clear cache'));
+}
+
 function addMedicine() {
     const body = {
         name: document.getElementById('medName').value,

@@ -1,3 +1,4 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <c:set var="loggedIn" value="${true}" />
@@ -29,9 +30,26 @@
         </div>
     </div>
 
-    <div class="row g-4" id="medicineGrid">
+    <!-- Category Filter -->
+    <div class="mb-4" id="categoryFilterBar">
+        <div class="d-flex flex-wrap gap-2 align-items-center" id="categoryBtnContainer">
+            <span class="text-muted small fw-semibold me-1">Filter by Category:</span>
+            <button class="btn btn-sm btn-primary category-btn active" data-category="all">
+                <i class="fas fa-th me-1"></i>All
+            </button>
+            <%-- Hidden spans used by JS to collect unique categories --%>
+            <c:forEach var="medicine" items="${medicines}">
+                <span class="d-none medicine-category-source">${fn:trim(medicine.category)}</span>
+            </c:forEach>
+        </div>
+    </div>
+
+    <div class="row g-4" id="medicineGrid" style="overflow-y: auto; max-height: calc(100vh - 220px); padding-right: 4px;">
         <c:forEach var="medicine" items="${medicines}">
-        <div class="col-md-4 col-lg-3 medicine-card">
+        <div class="col-md-4 col-lg-3 medicine-card"
+             data-category="${fn:trim(medicine.category)}"
+             data-name="${fn:escapeXml(medicine.name)}"
+             data-desc="${fn:escapeXml(fn:substring(medicine.description, 0, 100))}">
             <div class="card h-100 border-0 shadow-sm card-hover rounded-3">
                 <div class="card-img-top bg-gradient d-flex align-items-center justify-content-center rounded-top-3"
                      style="height: 140px; background: linear-gradient(135deg,#e0f2fe,#bfdbfe);">
@@ -40,7 +58,7 @@
                             <img src="${medicine.imageUrl}" alt="${medicine.name}" style="max-height: 120px; object-fit: contain;">
                         </c:when>
                         <c:otherwise>
-                            <span style="font-size: 4rem;">💊</span>
+                            <i class="fas fa-pills text-primary" style="font-size:4rem;"></i>
                         </c:otherwise>
                     </c:choose>
                 </div>
@@ -60,7 +78,7 @@
         </c:forEach>
         <c:if test="${empty medicines}">
             <div class="col-12 text-center py-5">
-                <div style="font-size: 5rem;">🔍</div>
+                <div><i class="fas fa-search text-muted" style="font-size:5rem;"></i></div>
                 <h5 class="text-muted mt-3">No medicines available</h5>
             </div>
         </c:if>
@@ -93,17 +111,55 @@
     let cart = JSON.parse(localStorage.getItem('cart') || '[]');
     updateCartCount();
 
+    // Build unique category buttons dynamically
+    const seen = new Set();
+    const container = document.getElementById('categoryBtnContainer');
+    document.querySelectorAll('.medicine-category-source').forEach(span => {
+        const cat = span.textContent.trim();
+        if (cat && !seen.has(cat)) {
+            seen.add(cat);
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-sm btn-outline-primary category-btn';
+            btn.dataset.category = cat;
+            btn.innerHTML = '<i class="fas fa-tag me-1"></i>' + cat;
+            container.appendChild(btn);
+        }
+    });
+
     function updateCartCount() {
         const total = cart.reduce((s, i) => s + i.quantity, 0);
         document.getElementById('cartCount').textContent = total;
     }
 
-    document.getElementById('searchInput').addEventListener('input', function() {
-        const q = this.value.toLowerCase();
-        document.querySelectorAll('.medicine-card').forEach(card => {
-            card.style.display = card.textContent.toLowerCase().includes(q) ? '' : 'none';
+    let activeCategory = 'all';
+
+    document.getElementById('categoryBtnContainer').addEventListener('click', function(e) {
+        const btn = e.target.closest('.category-btn');
+        if (!btn) return;
+        document.querySelectorAll('.category-btn').forEach(b => {
+            b.classList.remove('active', 'btn-primary');
+            b.classList.add('btn-outline-primary');
         });
+        btn.classList.remove('btn-outline-primary');
+        btn.classList.add('active', 'btn-primary');
+        activeCategory = btn.dataset.category;
+        filterCards();
     });
+
+    document.getElementById('searchInput').addEventListener('input', filterCards);
+
+    function filterCards() {
+        const q = document.getElementById('searchInput').value.toLowerCase().trim();
+        document.querySelectorAll('.medicine-card').forEach(card => {
+            const name = (card.dataset.name || '').toLowerCase();
+            const desc = (card.dataset.desc || '').toLowerCase();
+            const cat  = (card.dataset.category || '').toLowerCase().trim();
+            const matchSearch = !q || name.includes(q) || cat.includes(q) || desc.includes(q);
+            const cardCategory = (card.dataset.category || '').trim();
+            const matchCategory = activeCategory === 'all' || cardCategory === activeCategory;
+            card.style.display = (matchSearch && matchCategory) ? '' : 'none';
+        });
+    }
 
     document.querySelectorAll('.select-medicine-btn').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -114,14 +170,18 @@
 
             fetch('/api-proxy/medicines/' + id + '/skus', {
                 headers: { 'X-Proxy': 'true' }
-            }).then(r => r.json()).then(skus => {
+            }).then(r => {
+                if (r.status === 204 || r.status === 404) return [];
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            }).then(skus => {
                 if (!skus || skus.length === 0) {
                     document.getElementById('skuModalBody').innerHTML = '<p class="text-muted text-center">No variants available</p>';
                     return;
                 }
                 let html = '<div class="list-group">';
                 skus.forEach(sku => {
-                    html += \`<div class="list-group-item border rounded-3 mb-2 p-3">
+                    html += `<div class="list-group-item border rounded-3 mb-2 p-3">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <div class="fw-semibold">\${sku.unitLabel}</div>
@@ -141,7 +201,7 @@
                                 <i class="fas fa-cart-plus me-1"></i>Add
                             </button>
                         </div>
-                    </div>\`;
+                    </div>`;
                 });
                 html += '</div>';
                 document.getElementById('skuModalBody').innerHTML = html;
@@ -150,7 +210,7 @@
                     btn.addEventListener('click', function() {
                         const qty = parseInt(this.closest('.list-group-item').querySelector('.qty-input').value);
                         const item = {
-                            skuId: this.dataset.skuid,
+                            skuId: parseInt(this.dataset.skuid),
                             skuCode: this.dataset.skucode,
                             medicineName: this.dataset.medname,
                             unitLabel: this.dataset.unitlabel,

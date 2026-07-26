@@ -78,4 +78,14 @@ public class AuthService {
         auditService.logAction(ActionType.INACTIVATE_USER, EntityType.USER, id,
                 performedBy, oldValue, Map.of("isActive", false), remarks);
     }
+
+    @Transactional
+    public void promoteToAdmin(Long id, String performedBy) {
+        User user = getUserById(id);
+        Map<String, Object> oldValue = Map.of("role", user.getRole().name(), "email", user.getEmail());
+        user.setRole(User.Role.ADMIN);
+        userRepository.save(user);
+        auditService.logAction(ActionType.PROMOTE_USER, EntityType.USER, id,
+                performedBy, oldValue, Map.of("role", "ADMIN"), "Promoted to ADMIN");
+    }
 }

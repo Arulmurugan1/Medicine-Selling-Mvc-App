@@ -11,12 +11,12 @@
 <div class="container-fluid p-4">
     <div class="mb-4">
         <h4 class="fw-bold mb-0"><i class="fas fa-tachometer-alt me-2 text-primary"></i>Admin Dashboard</h4>
-        <p class="text-muted">Welcome back, <strong>${userName}</strong> — here's your control panel</p>
+        <p class="text-muted">Welcome back, <strong>${userName}</strong> &minus; here's your control panel</p>
     </div>
 
     <div class="row g-4">
         <div class="col-md-3 col-sm-6">
-            <a href="/medicines" class="text-decoration-none">
+            <a href="/admin/order" class="text-decoration-none">
             <div class="card admin-card p-4 text-center" style="background:linear-gradient(135deg,#dbeafe,#eff6ff);">
                 <div class="icon"><i class="fas fa-shopping-cart text-blue-600"></i></div>
                 <h6 class="fw-bold text-blue-800">Order Now</h6>

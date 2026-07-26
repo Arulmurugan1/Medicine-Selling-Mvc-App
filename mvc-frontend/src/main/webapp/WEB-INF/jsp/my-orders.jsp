@@ -17,7 +17,7 @@
 
     <c:if test="${empty orders}">
         <div class="text-center py-5">
-            <div style="font-size:5rem;">📦</div>
+            <div><i class="fas fa-box-open text-muted" style="font-size:5rem;"></i></div>
             <h5 class="text-muted mt-3">No orders yet</h5>
             <a href="/medicines" class="btn btn-primary mt-3">Start Shopping</a>
         </div>

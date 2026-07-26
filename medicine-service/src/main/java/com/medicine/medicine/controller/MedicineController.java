@@ -5,6 +5,9 @@ import com.medicine.medicine.entity.SkuMaster;
 import com.medicine.medicine.service.MedicineService;
 import com.medicine.medicine.service.SkuService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +17,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/medicines")
 @RequiredArgsConstructor
+@Slf4j
 public class MedicineController {
 
     private final MedicineService medicineService;
@@ -27,6 +31,9 @@ public class MedicineController {
     @GetMapping("/all")
     public ResponseEntity<List<Medicine>> getAllMedicines(
             @RequestHeader(value = "X-User-Role", defaultValue = "") String role) {
+
+        log.info("User role: {}", role);
+                
         if (!"ADMIN".equals(role)) return ResponseEntity.status(403).build();
         return ResponseEntity.ok(medicineService.findAll());
     }
@@ -74,6 +81,15 @@ public class MedicineController {
         if (!"ADMIN".equals(role)) return ResponseEntity.status(403).build();
         medicineService.deleteById(id);
         return ResponseEntity.ok(Map.of("message", "Medicine deleted"));
+    }
+
+    @DeleteMapping("/cache")
+    @CacheEvict(value = {"medicines", "medicine"}, allEntries = true)
+    public ResponseEntity<Map<String, String>> evictCache(
+            @RequestHeader(value = "X-User-Role", defaultValue = "") String role) {
+        if (!"ADMIN".equals(role)) return ResponseEntity.status(403).build();
+        log.info("Medicine cache evicted by admin");
+        return ResponseEntity.ok(Map.of("message", "Cache cleared successfully"));
     }
 
     @PostMapping("/{id}/deduct-stock")
