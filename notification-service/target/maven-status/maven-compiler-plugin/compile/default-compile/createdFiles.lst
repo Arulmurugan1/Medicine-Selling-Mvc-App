@@ -1,0 +1,2 @@
+com\medicine\notification\NotificationServiceApplication.class
+com\medicine\notification\consumer\OrderEventConsumer.class

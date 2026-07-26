@@ -1,0 +1,29 @@
+server:
+  port: 3006
+
+spring:
+  application:
+    name: mvc-frontend
+  mvc:
+    view:
+      prefix: /WEB-INF/jsp/
+      suffix: .jsp
+  web:
+    resources:
+      static-locations: classpath:/static/
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:3000/eureka/
+  instance:
+    prefer-ip-address: true
+
+gateway:
+  url: http://${GATEWAY_HOST:localhost}:3001
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info

@@ -1,0 +1,6 @@
+com\medicine\common\entity\AuditLog.class
+com\medicine\common\enums\EntityType.class
+com\medicine\common\service\AuditService.class
+com\medicine\common\entity\AuditLog$AuditLogBuilder.class
+com\medicine\common\enums\ActionType.class
+com\medicine\common\repository\AuditLogRepository.class
