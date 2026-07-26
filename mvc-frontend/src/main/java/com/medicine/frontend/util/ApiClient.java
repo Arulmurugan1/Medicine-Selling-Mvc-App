@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 @Component
@@ -25,17 +26,21 @@ public class ApiClient {
             ResponseEntity<T> response = restTemplate.exchange(
                     gatewayUrl + path, HttpMethod.GET, entity, responseType);
             return response.getBody();
-        } catch (HttpClientErrorException e) {
+        } catch (RestClientException e) {
             return null;
         }
     }
 
     public <T> T post(String path, String token, Object body, Class<T> responseType) {
-        HttpHeaders headers = buildHeaders(token);
-        HttpEntity<Object> entity = new HttpEntity<>(body, headers);
-        ResponseEntity<T> response = restTemplate.exchange(
-                gatewayUrl + path, HttpMethod.POST, entity, responseType);
-        return response.getBody();
+        try {
+            HttpHeaders headers = buildHeaders(token);
+            HttpEntity<Object> entity = new HttpEntity<>(body, headers);
+            ResponseEntity<T> response = restTemplate.exchange(
+                    gatewayUrl + path, HttpMethod.POST, entity, responseType);
+            return response.getBody();
+        } catch (RestClientException e) {
+            return null;
+        }
     }
 
     public <T> T put(String path, String token, Object body, Class<T> responseType) {

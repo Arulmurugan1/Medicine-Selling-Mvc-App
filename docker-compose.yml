@@ -184,9 +184,13 @@ services:
     ports:
       - "3006:3006"
     environment:
+      EUREKA_HOST: eureka-server
       GATEWAY_HOST: api-gateway
     depends_on:
-      - api-gateway
+      eureka-server:
+        condition: service_healthy
+      api-gateway:
+        condition: service_started
     networks: [med-net]
 
 volumes:

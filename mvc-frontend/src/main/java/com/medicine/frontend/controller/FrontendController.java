@@ -22,13 +22,18 @@ public class FrontendController {
     private final SessionUtil sessionUtil;
     private final ObjectMapper objectMapper;
 
-    // =================== PUBLIC PAGES ===================
-
-    @GetMapping("/")
-    public String index(HttpSession session, Model model) {
+    /** Automatically populate session-based attributes into every view model. */
+    @ModelAttribute
+    public void addSessionAttributes(HttpSession session, Model model) {
         model.addAttribute("loggedIn", sessionUtil.isLoggedIn(session));
         model.addAttribute("role", sessionUtil.getRole(session));
         model.addAttribute("userName", session.getAttribute(SessionUtil.SESSION_NAME));
+    }
+
+    // =================== PUBLIC PAGES ===================
+
+    @GetMapping("/")
+    public String index() {
         return "index";
     }
 
@@ -93,37 +98,28 @@ public class FrontendController {
 
     @GetMapping("/medicines")
     public String medicines(HttpSession session, Model model) {
-        if (!sessionUtil.isLoggedIn(session)) return "redirect:/login";
-        String token = sessionUtil.getToken(session);
-        List medicines = apiClient.get("/api/medicines", token, List.class);
+        if (!sessionUtil.isLoggedIn(session)) return "redirect:/";
+        List medicines = apiClient.get("/api/medicines", sessionUtil.getToken(session), List.class);
         model.addAttribute("medicines", medicines);
-        model.addAttribute("role", sessionUtil.getRole(session));
-        model.addAttribute("userName", session.getAttribute(SessionUtil.SESSION_NAME));
         return "medicines";
     }
 
     // =================== CART & CHECKOUT ===================
 
     @GetMapping("/cart")
-    public String cart(HttpSession session, Model model) {
-        if (!sessionUtil.isLoggedIn(session)) return "redirect:/login";
-        model.addAttribute("role", sessionUtil.getRole(session));
-        model.addAttribute("userName", session.getAttribute(SessionUtil.SESSION_NAME));
+    public String cart(HttpSession session) {
+        if (!sessionUtil.isLoggedIn(session)) return "redirect:/";
         return "cart";
     }
 
     @GetMapping("/checkout")
     public String checkout(HttpSession session, Model model) {
-        if (!sessionUtil.isLoggedIn(session)) return "redirect:/login";
+        if (!sessionUtil.isLoggedIn(session)) return "redirect:/";
         String token = sessionUtil.getToken(session);
-        Long userId = sessionUtil.getUserId(session);
-
         List addresses = apiClient.get("/api/addresses", token, List.class);
         List customers = apiClient.get("/api/customers", token, List.class);
         model.addAttribute("addresses", addresses);
         model.addAttribute("customers", customers);
-        model.addAttribute("role", sessionUtil.getRole(session));
-        model.addAttribute("userName", session.getAttribute(SessionUtil.SESSION_NAME));
         return "checkout";
     }
 
@@ -131,7 +127,7 @@ public class FrontendController {
     public String placeOrder(@RequestParam Long customerId, @RequestParam Long addressId,
                              @RequestParam String itemsJson,
                              HttpSession session, RedirectAttributes ra) {
-        if (!sessionUtil.isLoggedIn(session)) return "redirect:/login";
+        if (!sessionUtil.isLoggedIn(session)) return "redirect:/";
         try {
             String token = sessionUtil.getToken(session);
             List items = objectMapper.readValue(itemsJson, List.class);
@@ -139,7 +135,7 @@ public class FrontendController {
             body.put("customerId", customerId);
             body.put("shippingAddressId", addressId);
             body.put("items", items);
-            Map response = apiClient.post("/api/orders", token, body, Map.class);
+            apiClient.post("/api/orders", token, body, Map.class);
             ra.addFlashAttribute("success", "Order placed successfully!");
             return "redirect:/orders/my";
         } catch (Exception e) {
@@ -152,21 +148,17 @@ public class FrontendController {
 
     @GetMapping("/orders/my")
     public String myOrders(HttpSession session, Model model) {
-        if (!sessionUtil.isLoggedIn(session)) return "redirect:/login";
-        String token = sessionUtil.getToken(session);
-        List orders = apiClient.get("/api/orders/my", token, List.class);
+        if (!sessionUtil.isLoggedIn(session)) return "redirect:/";
+        List orders = apiClient.get("/api/orders/my", sessionUtil.getToken(session), List.class);
         model.addAttribute("orders", orders);
-        model.addAttribute("role", sessionUtil.getRole(session));
-        model.addAttribute("userName", session.getAttribute(SessionUtil.SESSION_NAME));
         return "my-orders";
     }
 
     // =================== ADMIN DASHBOARD ===================
 
     @GetMapping("/admin/dashboard")
-    public String adminDashboard(HttpSession session, Model model) {
-        if (!sessionUtil.isAdmin(session)) return "redirect:/login";
-        model.addAttribute("userName", session.getAttribute(SessionUtil.SESSION_NAME));
+    public String adminDashboard(HttpSession session) {
+        if (!sessionUtil.isAdmin(session)) return "redirect:/";
         return "admin/dashboard";
     }
 
@@ -175,26 +167,22 @@ public class FrontendController {
     @GetMapping("/admin/orders")
     public String adminOrders(HttpSession session, Model model,
                               @RequestParam(required = false) String status) {
-        if (!sessionUtil.isAdmin(session)) return "redirect:/login";
+        if (!sessionUtil.isAdmin(session)) return "redirect:/";
         String token = sessionUtil.getToken(session);
-        List orders;
-        if (status != null && !status.isEmpty()) {
-            orders = apiClient.get("/api/orders/status/" + status, token, List.class);
-        } else {
-            orders = apiClient.get("/api/orders", token, List.class);
-        }
+        List orders = (status != null && !status.isEmpty())
+                ? apiClient.get("/api/orders/status/" + status, token, List.class)
+                : apiClient.get("/api/orders", token, List.class);
         model.addAttribute("orders", orders);
         model.addAttribute("activeStatus", status);
-        model.addAttribute("userName", session.getAttribute(SessionUtil.SESSION_NAME));
         return "admin/orders";
     }
 
     @PostMapping("/admin/orders/{id}/cancel")
     public String cancelOrder(@PathVariable Long id, @RequestParam(required = false) String remarks,
                               HttpSession session, RedirectAttributes ra) {
-        if (!sessionUtil.isAdmin(session)) return "redirect:/login";
-        Map<String, String> body = Map.of("remarks", remarks != null ? remarks : "");
-        apiClient.put("/api/orders/" + id + "/cancel", sessionUtil.getToken(session), body, Map.class);
+        if (!sessionUtil.isAdmin(session)) return "redirect:/";
+        apiClient.put("/api/orders/" + id + "/cancel", sessionUtil.getToken(session),
+                Map.of("remarks", remarks != null ? remarks : ""), Map.class);
         ra.addFlashAttribute("success", "Order #" + id + " cancelled.");
         return "redirect:/admin/orders";
     }
@@ -203,9 +191,9 @@ public class FrontendController {
     public String updateOrderStatus(@PathVariable Long id, @RequestParam String status,
                                     @RequestParam(required = false) String remarks,
                                     HttpSession session, RedirectAttributes ra) {
-        if (!sessionUtil.isAdmin(session)) return "redirect:/login";
-        Map<String, String> body = Map.of("status", status, "remarks", remarks != null ? remarks : "");
-        apiClient.put("/api/orders/" + id + "/status", sessionUtil.getToken(session), body, Map.class);
+        if (!sessionUtil.isAdmin(session)) return "redirect:/";
+        apiClient.put("/api/orders/" + id + "/status", sessionUtil.getToken(session),
+                Map.of("status", status, "remarks", remarks != null ? remarks : ""), Map.class);
         ra.addFlashAttribute("success", "Order status updated.");
         return "redirect:/admin/orders";
     }
@@ -214,10 +202,8 @@ public class FrontendController {
 
     @GetMapping("/admin/payments")
     public String adminPayments(HttpSession session, Model model) {
-        if (!sessionUtil.isAdmin(session)) return "redirect:/login";
-        List payments = apiClient.get("/api/payments", sessionUtil.getToken(session), List.class);
-        model.addAttribute("payments", payments);
-        model.addAttribute("userName", session.getAttribute(SessionUtil.SESSION_NAME));
+        if (!sessionUtil.isAdmin(session)) return "redirect:/";
+        model.addAttribute("payments", apiClient.get("/api/payments", sessionUtil.getToken(session), List.class));
         return "admin/payments";
     }
 
@@ -225,19 +211,17 @@ public class FrontendController {
 
     @GetMapping("/admin/customers")
     public String adminCustomers(HttpSession session, Model model) {
-        if (!sessionUtil.isAdmin(session)) return "redirect:/login";
-        List customers = apiClient.get("/api/customers", sessionUtil.getToken(session), List.class);
-        model.addAttribute("customers", customers);
-        model.addAttribute("userName", session.getAttribute(SessionUtil.SESSION_NAME));
+        if (!sessionUtil.isAdmin(session)) return "redirect:/";
+        model.addAttribute("customers", apiClient.get("/api/customers", sessionUtil.getToken(session), List.class));
         return "admin/customers";
     }
 
     @PostMapping("/admin/customers/{id}/inactivate")
     public String inactivateCustomer(@PathVariable Long id, @RequestParam(required = false) String remarks,
                                      HttpSession session, RedirectAttributes ra) {
-        if (!sessionUtil.isAdmin(session)) return "redirect:/login";
-        Map<String, String> body = Map.of("remarks", remarks != null ? remarks : "");
-        apiClient.put("/api/customers/" + id + "/inactivate", sessionUtil.getToken(session), body, Map.class);
+        if (!sessionUtil.isAdmin(session)) return "redirect:/";
+        apiClient.put("/api/customers/" + id + "/inactivate", sessionUtil.getToken(session),
+                Map.of("remarks", remarks != null ? remarks : ""), Map.class);
         ra.addFlashAttribute("success", "Customer inactivated.");
         return "redirect:/admin/customers";
     }
@@ -246,19 +230,17 @@ public class FrontendController {
 
     @GetMapping("/admin/users")
     public String adminUsers(HttpSession session, Model model) {
-        if (!sessionUtil.isAdmin(session)) return "redirect:/login";
-        List users = apiClient.get("/api/auth/users", sessionUtil.getToken(session), List.class);
-        model.addAttribute("users", users);
-        model.addAttribute("userName", session.getAttribute(SessionUtil.SESSION_NAME));
+        if (!sessionUtil.isAdmin(session)) return "redirect:/";
+        model.addAttribute("users", apiClient.get("/api/auth/users", sessionUtil.getToken(session), List.class));
         return "admin/users";
     }
 
     @PostMapping("/admin/users/{id}/inactivate")
     public String inactivateUser(@PathVariable Long id, @RequestParam(required = false) String remarks,
                                  HttpSession session, RedirectAttributes ra) {
-        if (!sessionUtil.isAdmin(session)) return "redirect:/login";
-        Map<String, String> body = Map.of("remarks", remarks != null ? remarks : "");
-        apiClient.put("/api/auth/users/" + id + "/inactivate", sessionUtil.getToken(session), body, Map.class);
+        if (!sessionUtil.isAdmin(session)) return "redirect:/";
+        apiClient.put("/api/auth/users/" + id + "/inactivate", sessionUtil.getToken(session),
+                Map.of("remarks", remarks != null ? remarks : ""), Map.class);
         ra.addFlashAttribute("success", "User inactivated.");
         return "redirect:/admin/users";
     }
@@ -267,11 +249,8 @@ public class FrontendController {
 
     @GetMapping("/admin/skus")
     public String adminSkus(HttpSession session, Model model) {
-        if (!sessionUtil.isAdmin(session)) return "redirect:/login";
-        String token = sessionUtil.getToken(session);
-        List medicines = apiClient.get("/api/medicines/all", token, List.class);
-        model.addAttribute("medicines", medicines);
-        model.addAttribute("userName", session.getAttribute(SessionUtil.SESSION_NAME));
+        if (!sessionUtil.isAdmin(session)) return "redirect:/";
+        model.addAttribute("medicines", apiClient.get("/api/medicines/all", sessionUtil.getToken(session), List.class));
         return "admin/skus";
     }
 
@@ -279,10 +258,8 @@ public class FrontendController {
 
     @GetMapping("/admin/medicines")
     public String adminMedicines(HttpSession session, Model model) {
-        if (!sessionUtil.isAdmin(session)) return "redirect:/login";
-        List medicines = apiClient.get("/api/medicines/all", sessionUtil.getToken(session), List.class);
-        model.addAttribute("medicines", medicines);
-        model.addAttribute("userName", session.getAttribute(SessionUtil.SESSION_NAME));
+        if (!sessionUtil.isAdmin(session)) return "redirect:/";
+        model.addAttribute("medicines", apiClient.get("/api/medicines/all", sessionUtil.getToken(session), List.class));
         return "admin/medicines";
     }
 
@@ -291,12 +268,10 @@ public class FrontendController {
     @GetMapping("/admin/audit-log")
     public String adminAuditLog(HttpSession session, Model model,
                                 @RequestParam(defaultValue = "0") int page) {
-        if (!sessionUtil.isAdmin(session)) return "redirect:/login";
-        Map logs = apiClient.get("/api/audit-logs?page=" + page + "&size=20",
-                sessionUtil.getToken(session), Map.class);
-        model.addAttribute("logs", logs);
+        if (!sessionUtil.isAdmin(session)) return "redirect:/";
+        model.addAttribute("logs", apiClient.get("/api/audit-logs?page=" + page + "&size=20",
+                sessionUtil.getToken(session), Map.class));
         model.addAttribute("page", page);
-        model.addAttribute("userName", session.getAttribute(SessionUtil.SESSION_NAME));
         return "admin/audit-log";
     }
 }

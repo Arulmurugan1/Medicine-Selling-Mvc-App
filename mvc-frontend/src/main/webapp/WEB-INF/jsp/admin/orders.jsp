@@ -1,5 +1,8 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@include file="../layout/header.jsp"%>
+<div class="d-flex">
+<%@include file="../layout/admin-sidebar.jsp"%>
+<div class="flex-grow-1 overflow-auto">
 <div class="container-fluid p-4">
     <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
         <div>
@@ -21,8 +24,8 @@
         </div>
     </div>
 
-    <c:if test="${not empty flashScope.success}">
-        <div class="alert alert-success rounded-3"><i class="fas fa-check-circle me-2"></i>${flashScope.success}</div>
+    <c:if test="${not empty success}">
+        <div class="alert alert-success rounded-3"><i class="fas fa-check-circle me-2"></i>${success}</div>
     </c:if>
 
     <div class="card border-0 shadow-sm rounded-4">
@@ -129,4 +132,7 @@ document.getElementById('cancelModal').addEventListener('show.bs.modal', functio
     document.getElementById('cancelForm').action = '/admin/orders/' + btn.dataset.orderid + '/cancel';
 });
 </script>
+</div><!-- container-fluid -->
+</div><!-- flex-grow-1 -->
+</div><!-- d-flex -->
 <%@include file="../layout/footer.jsp"%>

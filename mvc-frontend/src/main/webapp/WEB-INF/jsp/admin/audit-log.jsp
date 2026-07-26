@@ -1,5 +1,8 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@include file="../layout/header.jsp"%>
+<div class="d-flex">
+<%@include file="../layout/admin-sidebar.jsp"%>
+<div class="flex-grow-1 overflow-auto">
 <div class="container-fluid p-4">
     <h4 class="fw-bold mb-4"><i class="fas fa-search me-2 text-primary"></i>Audit Log</h4>
     <div class="card border-0 shadow-sm rounded-4">
@@ -92,4 +95,7 @@ document.getElementById('logDetailModal').addEventListener('show.bs.modal', func
     document.getElementById('newValuePre').textContent = fmt(btn.dataset.new);
 });
 </script>
+</div><!-- container-fluid -->
+</div><!-- flex-grow-1 -->
+</div><!-- d-flex -->
 <%@include file="../layout/footer.jsp"%>

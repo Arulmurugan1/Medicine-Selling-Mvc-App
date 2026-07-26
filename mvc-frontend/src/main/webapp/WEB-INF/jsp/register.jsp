@@ -1,6 +1,6 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" translate="no">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - MediMart</title>
@@ -26,8 +26,8 @@
                 <h4 class="fw-bold mb-1">Create Account</h4>
                 <p class="text-muted small mb-4">Join thousands of customers</p>
 
-                <c:if test="${not empty flashScope.error}">
-                    <div class="alert alert-danger rounded-3"><i class="fas fa-exclamation-circle me-2"></i>${flashScope.error}</div>
+                <c:if test="${not empty error}">
+                    <div class="alert alert-danger rounded-3"><i class="fas fa-exclamation-circle me-2"></i>${error}</div>
                 </c:if>
 
                 <form method="post" action="/register">

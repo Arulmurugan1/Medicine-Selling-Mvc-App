@@ -1,9 +1,12 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@include file="../layout/header.jsp"%>
+<div class="d-flex">
+<%@include file="../layout/admin-sidebar.jsp"%>
+<div class="flex-grow-1 overflow-auto">
 <div class="container-fluid p-4">
     <h4 class="fw-bold mb-4"><i class="fas fa-users me-2 text-primary"></i>User Management</h4>
-    <c:if test="${not empty flashScope.success}">
-        <div class="alert alert-success rounded-3"><i class="fas fa-check-circle me-2"></i>${flashScope.success}</div>
+    <c:if test="${not empty success}">
+        <div class="alert alert-success rounded-3"><i class="fas fa-check-circle me-2"></i>${success}</div>
     </c:if>
     <div class="card border-0 shadow-sm rounded-4">
         <div class="card-body p-0">
@@ -73,4 +76,7 @@ document.getElementById('inactivateModal').addEventListener('show.bs.modal', fun
     document.getElementById('inactivateUserName').textContent = btn.dataset.username;
 });
 </script>
+</div><!-- container-fluid -->
+</div><!-- flex-grow-1 -->
+</div><!-- d-flex -->
 <%@include file="../layout/footer.jsp"%>

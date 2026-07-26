@@ -52,7 +52,7 @@ public class DocGenerator {
         table(doc,
             new String[]{"Component", "Image", "Port"},
             new String[][]{
-                {"MySQL 8",     "mysql:8.0",                      "3306"},
+                {"MySQL 8",     "mysql:8.0",                      "3307 (host) → 3306 (container)"},
                 {"Redis 7",     "redis:7-alpine",                 "6379"},
                 {"Zookeeper",   "confluentinc/cp-zookeeper:7.6.0","2181"},
                 {"Kafka",       "confluentinc/cp-kafka:7.6.0",   "9092"}
@@ -162,6 +162,7 @@ public class DocGenerator {
                 {"API Gateway",      "http://localhost:3001"},
                 {"MySQL DB name",    "medicine_db"},
                 {"MySQL root password", "root"},
+                {"MySQL host port",   "3307 (maps to 3306 inside container; changed from 3306 to avoid conflict with any local MySQL)"},
                 {"JWT Secret",       "Medicine$SecretKey2024!VeryLongAndSecure"},
                 {"Redis host:port",  "localhost:6379"},
                 {"Kafka broker",     "localhost:9092"}
@@ -286,6 +287,7 @@ public class DocGenerator {
                 {"Restart one service",                "docker compose restart <service-name>"},
                 {"Check container health",             "docker compose ps"},
                 {"Open MySQL shell",                   "docker exec -it medicine-mysql mysql -uroot -proot medicine_db"},
+                {"Connect from host (DBeaver etc.)",  "Host: localhost  Port: 3307  User: root  Password: root  DB: medicine_db"},
                 {"Flush Redis cache",                  "docker exec -it medicine-redis redis-cli FLUSHALL"},
                 {"List Kafka topics",                  "docker exec -it medicine-kafka kafka-topics --bootstrap-server localhost:9092 --list"}
             });
@@ -307,7 +309,8 @@ public class DocGenerator {
         table(doc,
             new String[]{"Problem", "Fix"},
             new String[][]{
-                {"Port already in use",               "Run: docker compose down, then check with: netstat -ano | findstr :<PORT>"},
+                {"Port already in use (MySQL 3306)",  "MySQL host port is mapped to 3307 to avoid conflict with a local MySQL. If 3307 is also taken, change the ports entry in docker-compose.yml."},
+                {"Port already in use (other)",        "Run: docker compose down, then check with: netstat -ano | findstr :<PORT>"},
                 {"MySQL not ready — services crashing","Wait 30s and run: docker compose restart auth-service medicine-service order-service"},
                 {"Kafka consumer not connecting",      "Wait for kafka container to be healthy, then: docker compose restart notification-service order-service"},
                 {"Services not appearing in Eureka",   "Wait 60s — Eureka heartbeat interval. Then refresh http://localhost:3000"},
