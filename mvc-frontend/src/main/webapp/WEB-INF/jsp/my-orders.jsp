@@ -1,6 +1,70 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <c:set var="loggedIn" value="${true}" />
 <%@include file="layout/header.jsp"%>
+
+<%-- ===== Order Status Popup ===== --%>
+<c:if test="${not empty success or not empty error}">
+<div id="orderStatusOverlay" style="
+    position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;
+    display:flex;align-items:center;justify-content:center;">
+  <div style="
+      background:#fff;border-radius:20px;padding:48px 56px;
+      text-align:center;max-width:420px;width:90%;
+      box-shadow:0 24px 64px rgba(0,0,0,.25);
+      animation:popIn .35s cubic-bezier(.34,1.56,.64,1);">
+
+    <c:choose>
+      <c:when test="${not empty success}">
+        <%-- Green success tick --%>
+        <div style="width:90px;height:90px;border-radius:50%;background:#e8f5e9;
+                    display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+          <svg viewBox="0 0 52 52" width="56" height="56">
+            <circle cx="26" cy="26" r="25" fill="none" stroke="#43a047" stroke-width="3"/>
+            <path fill="none" stroke="#43a047" stroke-width="4"
+                  stroke-linecap="round" stroke-linejoin="round"
+                  d="M14 27 l9 9 l16-18" style="stroke-dasharray:40;stroke-dashoffset:0;
+                     animation:drawCheck .5s .2s ease forwards;"/>
+          </svg>
+        </div>
+        <h4 style="color:#2e7d32;font-weight:700;margin-bottom:8px;">Order Placed!</h4>
+        <p style="color:#555;margin-bottom:6px;">${success}</p>
+        <p style="color:#43a047;font-size:.85rem;">
+          <i class="fas fa-truck me-1"></i>Your order is being processed.
+        </p>
+      </c:when>
+      <c:otherwise>
+        <%-- Red failure mark --%>
+        <div style="width:90px;height:90px;border-radius:50%;background:#ffebee;
+                    display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+          <svg viewBox="0 0 52 52" width="56" height="56">
+            <circle cx="26" cy="26" r="25" fill="none" stroke="#e53935" stroke-width="3"/>
+            <line x1="16" y1="16" x2="36" y2="36" stroke="#e53935" stroke-width="4"
+                  stroke-linecap="round"/>
+            <line x1="36" y1="16" x2="16" y2="36" stroke="#e53935" stroke-width="4"
+                  stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h4 style="color:#c62828;font-weight:700;margin-bottom:8px;">Order Failed</h4>
+        <p style="color:#555;margin-bottom:6px;">${error}</p>
+        <p style="color:#e53935;font-size:.85rem;">Please try again or contact support.</p>
+      </c:otherwise>
+    </c:choose>
+
+    <button onclick="closeOrderPopup()"
+            style="margin-top:20px;padding:10px 32px;border:none;border-radius:50px;
+                   background:#1565c0;color:#fff;font-weight:600;font-size:.95rem;cursor:pointer;">
+      OK
+    </button>
+  </div>
+</div>
+<style>
+@keyframes popIn{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+</style>
+<script>
+function closeOrderPopup(){document.getElementById('orderStatusOverlay').remove();}
+setTimeout(closeOrderPopup, 5000);
+</script>
+</c:if>
 <div class="container-fluid">
 <div class="row">
 <div class="col-md-2 p-0 sidebar d-none d-md-block">

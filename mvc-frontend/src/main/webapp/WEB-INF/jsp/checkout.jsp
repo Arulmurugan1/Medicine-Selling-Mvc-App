@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=UTF-16" pageEncoding="UTF-16" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <c:set var="loggedIn" value="${true}" />
 <%@include file="layout/header.jsp"%>
@@ -155,10 +155,10 @@
     cart.forEach(item => {
         const lt = item.unitPrice * item.quantity;
         total += lt;
-        summaryHtml += `<div class="d-flex justify-content-between mb-2">
-            <span class="text-muted small">${item.medicineName} x${item.quantity}</span>
-            <span class="fw-semibold small">₹${lt.toFixed(2)}</span>
-        </div>`;
+        summaryHtml += '<div class="d-flex justify-content-between mb-2">'
+            + '<span class="text-muted small">' + item.medicineName + ' x' + item.quantity + '</span>'
+            + '<span class="fw-semibold small">\u20B9' + lt.toFixed(2) + '</span>'
+            + '</div>';
     });
     document.getElementById('orderSummaryItems').innerHTML = summaryHtml;
     document.getElementById('orderTotal').textContent = '₹' + total.toFixed(2);
@@ -197,11 +197,11 @@
             .then(r => r.json()).then(a => {
                 const div = document.createElement('div');
                 div.className = 'form-check border rounded-3 p-3 mb-2';
-                div.innerHTML = `<input class="form-check-input" type="radio" name="addressId" value="${a.id}" id="addr${a.id}" checked>
-                    <label class="form-check-label w-100" for="addr${a.id}">
-                        <strong>${a.recipientName}</strong> <span class="text-muted">${a.phone}</span><br>
-                        <small class="text-muted">${a.addressLine1}, ${a.city} - ${a.pincode}</small>
-                    </label>`;
+                div.innerHTML = '<input class="form-check-input" type="radio" name="addressId" value="' + a.id + '" id="addr' + a.id + '" checked>'
+                    + '<label class="form-check-label w-100" for="addr' + a.id + '">'
+                    + '<strong>' + a.recipientName + '</strong> <span class="text-muted">' + a.phone + '</span><br>'
+                    + '<small class="text-muted">' + a.addressLine1 + ', ' + a.city + ' - ' + a.pincode + '</small>'
+                    + '</label>';
                 document.querySelector('[data-bs-target="#newAddressModal"]').before(div);
                 bootstrap.Modal.getInstance(document.getElementById('newAddressModal')).hide();
             });
