@@ -1,8 +1,0 @@
-com\medicine\frontend\util\ApiClient.class
-com\medicine\frontend\controller\ApiProxyController.class
-com\medicine\frontend\config\SecurityConfig.class
-com\medicine\frontend\config\AppConfig.class
-com\medicine\frontend\docs\DocGenerator.class
-com\medicine\frontend\util\SessionUtil.class
-com\medicine\frontend\controller\FrontendController.class
-com\medicine\frontend\FrontendApplication.class

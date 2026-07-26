@@ -8,7 +8,7 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: medicine_db
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
@@ -86,7 +86,7 @@ services:
       - "3001:3001"
     environment:
       EUREKA_HOST: eureka-server
-      JWT_SECRET: Medicine$SecretKey2024!VeryLongAndSecure
+      JWT_SECRET: "Medicine$$SecretKey2024!VeryLongAndSecure"
     depends_on:
       eureka-server:
         condition: service_healthy
@@ -105,7 +105,7 @@ services:
       DB_USER: root
       DB_PASS: root
       EUREKA_HOST: eureka-server
-      JWT_SECRET: Medicine$SecretKey2024!VeryLongAndSecure
+      JWT_SECRET: "Medicine$$SecretKey2024!VeryLongAndSecure"
     depends_on:
       mysql:
         condition: service_healthy
