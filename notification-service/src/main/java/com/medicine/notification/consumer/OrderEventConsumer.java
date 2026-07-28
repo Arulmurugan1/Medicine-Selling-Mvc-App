@@ -58,4 +58,21 @@ public class OrderEventConsumer {
             log.error("[NOTIFICATION] Failed to process order-cancelled event: {}", e.getMessage());
         }
     }
+
+    @KafkaListener(topics = "order-status-updated", groupId = "notification-group")
+    public void handleStatusUpdated(String message) {
+        try {
+            Map<?, ?> event = objectMapper.readValue(message, Map.class);
+            Object orderId = event.get("orderId");
+            Object status  = event.get("status");
+            Object userId  = event.get("userId");
+
+            log.info("==========================================================");
+            log.info("[ORDER STATUS UPDATE]");
+            log.info("  Order #{} for user #{} → {}", orderId, userId, status);
+            log.info("==========================================================");
+        } catch (Exception e) {
+            log.error("[NOTIFICATION] Failed to process order-status-updated event: {}", e.getMessage());
+        }
+    }
 }

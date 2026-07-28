@@ -1,4 +1,6 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <c:set var="loggedIn" value="${true}" />
 <%@include file="layout/header.jsp"%>
 
@@ -76,8 +78,8 @@ setTimeout(closeOrderPopup, 5000);
         <a class="nav-link" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
     </nav>
 </div>
-<div class="col-md-10 p-4">
-    <h4 class="fw-bold mb-4"><i class="fas fa-box me-2 text-primary"></i>My Orders</h4>
+<div class="col-md-10 p-4 d-flex flex-column" style="height:calc(100vh - 56px);overflow:hidden;">
+    <h4 class="fw-bold mb-4 flex-shrink-0"><i class="fas fa-box me-2 text-primary"></i>My Orders</h4>
 
     <c:if test="${empty orders}">
         <div class="text-center py-5">
@@ -87,24 +89,25 @@ setTimeout(closeOrderPopup, 5000);
         </div>
     </c:if>
 
+    <div class="flex-grow-1 overflow-auto pe-1">
     <c:forEach var="order" items="${orders}">
-    <div class="card border-0 shadow-sm rounded-4 mb-3">
+    <div class="card border-0 shadow-sm rounded-4 mb-3" data-order-id="${order.id}">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
                 <div>
                     <h6 class="fw-bold mb-1">Order #${order.id}</h6>
-                    <small class="text-muted"><i class="fas fa-calendar me-1"></i>${order.createdAt}</small>
+                    <small class="text-muted"><i class="fas fa-calendar me-1"></i>${fn:replace(fn:substring(order.createdAt, 0, 16), 'T', ' ')}</small>
                 </div>
                 <div class="text-end">
-                    <span class="badge rounded-pill px-3 py-2 badge-${order.status}">${order.status}</span>
-                    <div class="fw-bold mt-1 text-primary">₹${order.totalAmount}</div>
+                    <span class="badge rounded-pill px-3 py-2 order-status-badge badge-${order.status}">${order.status}</span>
+                    <div class="fw-bold mt-1 text-primary">&#8377;${order.totalAmount}</div>
                 </div>
             </div>
             <hr class="my-2">
             <c:forEach var="item" items="${order.items}">
             <div class="d-flex justify-content-between text-sm">
                 <span>${item.medicineName} <small class="text-muted">(${item.unitLabel})</small></span>
-                <span>x${item.quantity} × ₹${item.unitPrice}</span>
+                <span>x${item.quantity} &times; &#8377;${item.unitPrice}</span>
             </div>
             </c:forEach>
             <div class="mt-2">
@@ -113,6 +116,7 @@ setTimeout(closeOrderPopup, 5000);
         </div>
     </div>
     </c:forEach>
+    </div><%-- end scrollable orders list --%>
 </div>
 </div>
 </div>

@@ -36,4 +36,19 @@ public class KafkaOrderProducer {
             log.error("[KAFKA] Failed to publish cancel event", e);
         }
     }
+
+    public void publishStatusUpdated(Long orderId, Long userId, String status) {
+        try {
+            Map<String, Object> event = Map.of(
+                    "orderId", orderId,
+                    "userId", userId,
+                    "status", status
+            );
+            String message = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send("order-status-updated", message);
+            log.info("[KAFKA] Published to 'order-status-updated': {}", message);
+        } catch (Exception e) {
+            log.error("[KAFKA] Failed to publish status-updated event", e);
+        }
+    }
 }

@@ -1,12 +1,15 @@
 package com.medicine.frontend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.medicine.frontend.util.ActivityLogClient;
 import com.medicine.frontend.util.ApiClient;
 import com.medicine.frontend.util.SessionUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +27,7 @@ public class FrontendController {
     private final ApiClient apiClient;
     private final SessionUtil sessionUtil;
     private final ObjectMapper objectMapper;
+    private final ActivityLogClient activityLogClient;
 
     /** Automatically populate session-based attributes into every view model. */
     @ModelAttribute
@@ -48,23 +52,27 @@ public class FrontendController {
 
     @PostMapping("/login")
     public String doLogin(@RequestParam String email, @RequestParam String password,
-                          HttpSession session, RedirectAttributes ra) {
+                          HttpServletRequest request, HttpSession session, RedirectAttributes ra) {
+        String ipAddress = resolveIp(request);
         try {
             Map<String, String> body = Map.of("email", email, "password", password);
             Map response = apiClient.post("/api/auth/login", null, body, Map.class);
             if (response != null && response.get("token") != null) {
+                Long userId = ((Number) response.get("userId")).longValue();
                 sessionUtil.setSession(session,
                         (String) response.get("token"),
                         (String) response.get("email"),
                         (String) response.get("name"),
                         (String) response.get("role"),
-                        ((Number) response.get("userId")).longValue());
-                
+                        userId);
+                activityLogClient.logActivity(userId, ipAddress, "LOGIN", "LOGIN_PAGE", null);
                 if ("ADMIN".equals(response.get("role"))) return "redirect:/admin/dashboard";
                 return "redirect:/medicines";
             }
+            activityLogClient.logActivity(null, ipAddress, "LOGIN_FAILED", "LOGIN_PAGE", "Invalid credentials");
             ra.addFlashAttribute("error", "Invalid credentials");
         } catch (Exception e) {
+            activityLogClient.logActivity(null, ipAddress, "LOGIN_FAILED", "LOGIN_PAGE", e.getMessage());
             ra.addFlashAttribute("error", "Login failed: " + e.getMessage());
         }
         return "redirect:/login";
@@ -78,24 +86,39 @@ public class FrontendController {
 
     @PostMapping("/register")
     public String doRegister(@RequestParam String name, @RequestParam String email,
-                             @RequestParam String password, RedirectAttributes ra) {
+                             @RequestParam String password,
+                             HttpServletRequest request, RedirectAttributes ra) {
+        String ipAddress = resolveIp(request);
         try {
             Map<String, String> body = Map.of("name", name, "email", email, "password", password);
             Map response = apiClient.post("/api/auth/register", null, body, Map.class);
             if (response != null) {
+                Long userId = response.get("userId") != null ? ((Number) response.get("userId")).longValue() : null;
+                activityLogClient.logActivity(userId, ipAddress, "REGISTER", "REGISTER_PAGE", null);
                 ra.addFlashAttribute("success", "Registration successful! Please login.");
                 return "redirect:/login";
             }
         } catch (Exception e) {
+            activityLogClient.logActivity(null, ipAddress, "REGISTER_FAILED", "REGISTER_PAGE", e.getMessage());
             ra.addFlashAttribute("error", "Registration failed: " + e.getMessage());
         }
         return "redirect:/register";
     }
 
     @GetMapping("/logout")
-    public String logout(HttpSession session) {
+    public String logout(HttpServletRequest request, HttpSession session) {
+        Long userId = sessionUtil.getUserId(session);
+        activityLogClient.logActivity(userId, resolveIp(request), "LOGOUT", "LOGOUT", null);
         sessionUtil.clearSession(session);
         return "redirect:/";
+    }
+
+    // ── Helper ────────────────────────────────────────────────
+
+    private String resolveIp(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip != null && !ip.isBlank()) return ip.split(",")[0].trim();
+        return request.getRemoteAddr();
     }
 
     // =================== MEDICINE CATALOG ===================
@@ -203,9 +226,28 @@ public class FrontendController {
     @GetMapping("/orders/my")
     public String myOrders(HttpSession session, Model model) {
         if (!sessionUtil.isLoggedIn(session)) return "redirect:/";
+        
         List orders = apiClient.get("/api/orders/my", sessionUtil.getToken(session), List.class);
         model.addAttribute("orders", orders);
+        
         return "my-orders";
+    }
+
+    /** Lightweight JSON endpoint polled by JS to detect status changes. */
+    @GetMapping(value = "/orders/my/statuses", produces = "application/json")
+    @ResponseBody
+    public ResponseEntity<?> myOrderStatuses(HttpSession session) {
+        if (!sessionUtil.isLoggedIn(session)) return ResponseEntity.status(401).build();
+        List<java.util.Map> orders = apiClient.get("/api/orders/my", sessionUtil.getToken(session), List.class);
+        if (orders == null) return ResponseEntity.ok(List.of());
+        List<java.util.Map<String, Object>> statuses = orders.stream().map(o -> {
+            java.util.Map<String, Object> m = new java.util.HashMap<>();
+            m.put("id", o.get("id"));
+            m.put("status", o.get("status"));
+            m.put("statusUpdatedAt", o.get("statusUpdatedAt"));
+            return m;
+        }).toList();
+        return ResponseEntity.ok(statuses);
     }
 
     // =================== ADMIN DASHBOARD ===================

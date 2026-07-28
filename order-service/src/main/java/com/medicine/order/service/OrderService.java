@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -102,6 +103,7 @@ public class OrderService {
         Order order = findById(id);
         String oldStatus = order.getStatus().name();
         order.setStatus(Order.OrderStatus.valueOf(newStatus));
+        order.setStatusUpdatedAt(LocalDateTime.now());
         Order saved = orderRepository.save(order);
         auditService.logAction(ActionType.ORDER_STATUS_UPDATE, EntityType.ORDER, id,
                 performedBy, Map.of("status", oldStatus), Map.of("status", newStatus), remarks);

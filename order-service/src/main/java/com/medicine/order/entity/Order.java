@@ -46,6 +46,9 @@ public class Order {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "status_updated_at")
+    private LocalDateTime statusUpdatedAt;
+
     @JsonManagedReference
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<OrderItem> items;
@@ -53,10 +56,11 @@ public class Order {
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
+        this.statusUpdatedAt = LocalDateTime.now();
         if (this.status == null) this.status = OrderStatus.PENDING;
     }
 
     public enum OrderStatus {
-        PENDING, PROCESSING, OUT_FOR_DELIVERY, DELIVERED, CANCELLED
+        PENDING, PROCESSING, OUT_FOR_DELIVERY, DELIVERED, COD_PAYMENT_SUCCESS, CANCELLED
     }
 }

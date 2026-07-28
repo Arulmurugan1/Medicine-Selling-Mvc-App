@@ -6,6 +6,21 @@
 CREATE DATABASE IF NOT EXISTS medicine_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE medicine_db;
 
+-- ── User Screen Activity Log ──────────────────────────────────
+CREATE TABLE IF NOT EXISTS users_screen_activity_log (
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id        BIGINT       NULL COMMENT 'NULL for unauthenticated attempts',
+    ip_address     VARCHAR(45)  NOT NULL,
+    activity_type  VARCHAR(50)  NOT NULL COMMENT 'LOGIN,LOGIN_FAILED,REGISTER,SCREEN_VIEW,UNAUTHORIZED_ACCESS',
+    screen_name    VARCHAR(100) NOT NULL,
+    error_message  VARCHAR(500) NULL,
+    created_at     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_usal_user   (user_id),
+    INDEX idx_usal_type   (activity_type),
+    INDEX idx_usal_ip     (ip_address),
+    INDEX idx_usal_time   (created_at)
+);
+
 -- ── Audit Log ─────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS audit_log (
     id            BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -94,8 +109,7 @@ CREATE TABLE IF NOT EXISTS orders (
     shipping_address_id BIGINT,
     total_amount        DECIMAL(12,2)  NOT NULL DEFAULT 0.00,
     status              VARCHAR(30)    NOT NULL DEFAULT 'PENDING',
-    created_at          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_order_user   (user_id),
+    created_at          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,      status_updated_at   DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,    INDEX idx_order_user   (user_id),
     INDEX idx_order_status (status)
 );
 
@@ -221,3 +235,16 @@ INSERT IGNORE INTO sku_master (sku_code, medicine_id, unit_label, unit_price, qu
 INSERT IGNORE INTO customers (customer_name, customer_email, customer_phone, created_by_user_id) VALUES
   ('Ravi Kumar',  'ravi@example.com',  '9876543210', 1),
   ('Priya Sharma','priya@example.com', '9845678901', 1);
+
+-- ── Schema migrations (idempotent) ───────────────────────────
+-- Add status_updated_at if missing (MySQL 8.0 compatible)
+SET @col_exists = (
+    SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME   = 'orders'
+      AND COLUMN_NAME  = 'status_updated_at'
+);
+SET @sql = IF(@col_exists = 0,
+    'ALTER TABLE orders ADD COLUMN status_updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;

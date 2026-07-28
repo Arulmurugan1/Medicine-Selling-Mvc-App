@@ -21,23 +21,28 @@ public class SessionUtil {
     }
 
     public String getToken(HttpSession session) {
+        if (session == null) return null;
         return (String) session.getAttribute(SESSION_TOKEN);
     }
 
     public String getRole(HttpSession session) {
+        if (session == null) return null;
         return (String) session.getAttribute(SESSION_ROLE);
     }
 
     public Long getUserId(HttpSession session) {
+        if (session == null) return null;
         Object id = session.getAttribute(SESSION_USER_ID);
         return id != null ? ((Number) id).longValue() : null;
     }
 
     public boolean isLoggedIn(HttpSession session) {
+        if (session == null) return false;
         return session.getAttribute(SESSION_TOKEN) != null;
     }
 
     public boolean isAdmin(HttpSession session) {
+        if (session == null) return false;
         return "ADMIN".equals(session.getAttribute(SESSION_ROLE));
     }
 

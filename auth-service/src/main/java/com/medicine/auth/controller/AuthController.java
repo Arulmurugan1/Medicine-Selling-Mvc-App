@@ -1,9 +1,11 @@
 package com.medicine.auth.controller;
 
+import com.medicine.auth.dto.ActivityLogRequest;
 import com.medicine.auth.dto.AuthResponse;
 import com.medicine.auth.dto.LoginRequest;
 import com.medicine.auth.dto.RegisterRequest;
 import com.medicine.auth.entity.User;
+import com.medicine.auth.service.ActivityLogService;
 import com.medicine.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final ActivityLogService activityLogService;
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
@@ -72,5 +75,16 @@ public class AuthController {
         }
         authService.promoteToAdmin(id, performedBy);
         return ResponseEntity.ok(Map.of("message", "User promoted to ADMIN successfully"));
+    }
+
+    @PostMapping("/activity")
+    public ResponseEntity<Void> logActivity(@RequestBody ActivityLogRequest request) {
+        activityLogService.log(
+                request.getUserId(),
+                request.getIpAddress(),
+                request.getActivityType(),
+                request.getScreenName(),
+                request.getErrorMessage());
+        return ResponseEntity.ok().build();
     }
 }

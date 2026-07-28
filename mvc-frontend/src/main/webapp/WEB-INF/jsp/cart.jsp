@@ -1,3 +1,4 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <c:set var="loggedIn" value="${true}" />
 <%@include file="layout/header.jsp"%>
@@ -74,12 +75,12 @@
             const lineTotal = item.unitPrice * item.quantity;
             total += lineTotal;
             return `<tr>
-                <td class="fw-semibold">${item.medicineName}</td>
-                <td><small class="text-muted">${item.unitLabel}</small></td>
-                <td>₹${item.unitPrice.toFixed(2)}</td>
-                <td><input type="number" class="form-control form-control-sm" style="width:70px" value="${item.quantity}" min="1" onchange="updateQty(${idx}, this.value)"></td>
-                <td class="fw-semibold text-primary">₹${lineTotal.toFixed(2)}</td>
-                <td><button class="btn btn-sm btn-outline-danger" onclick="removeItem(${idx})"><i class="fas fa-trash"></i></button></td>
+                <td class="fw-semibold">\${item.medicineName}</td>
+                <td><small class="text-muted">\${item.unitLabel}</small></td>
+                <td>₹\${item.unitPrice.toFixed(2)}</td>
+                <td><input type="number" class="form-control form-control-sm" style="width:70px" value="\${item.quantity}" min="1" onchange="updateQty(\${idx}, this.value)"></td>
+                <td class="fw-semibold text-primary">₹\${lineTotal.toFixed(2)}</td>
+                <td><button class="btn btn-sm btn-outline-danger" onclick="removeItem(\${idx})"><i class="fas fa-trash"></i></button></td>
             </tr>`;
         }).join('');
         document.getElementById('subtotal').textContent = '₹' + total.toFixed(2);
